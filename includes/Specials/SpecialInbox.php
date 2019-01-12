@@ -22,57 +22,83 @@ class SpecialInbox extends SpecialPage {
 		$out = $this->getOutput();
 
 		if ( is_numeric( $par ) ) {
-			$email = Email::get( $this->getUser()->getEmail(), $par );
-			if ( $email ) {
-				$out->setArticleBodyOnly( true );
-				// todo: mark as read
-				$out->addHTML( $email->email_subject );
-				$out->addHTML( '<hr />' );
-				$headers = array_change_key_case( FormatJson::decode( $email->email_headers, true ) );
-				if ( strpos( $headers[ 'content-type' ], 'multipart' ) !== false ) {
-					preg_match( '/boundary=\"(.*?)\"/', $headers[ 'content-type' ], $m );
-					$boundary = $m[1];
-					$parts = explode( '--' . $boundary, $email->email_body );
-					$out->addHTML( '<pre>' . quoted_printable_decode( $parts[1] ) . '</pre>' );
-					$out->addHTML( '<hr />' );
-					$out->addHTML( quoted_printable_decode( $parts[2] ) );
-				} elseif ( strpos( $headers[ 'content-type' ], 'text/plain' ) >= 0 ) {
-					$out->addHTML( '<pre>' . quoted_printable_decode( $email->email_body ) . '</pre>' );
-				} else {
-					$out->addHTML( quoted_printable_decode( $email->email_body ) );
-				}
-			} else {
-				parent::execute( $par );
-				$out->addHTML( 'email not found' );
-			}
+			$this->showEmail( $this->getUser()->getEmail(), $par );
 		} else {
-			parent::execute( $par );
-			$emails = Email::getAll( $this->getUser()->getEmail() );
-			if ( $emails ) {
-				$out->addHTML( Html::openElement( 'table' ) );
-
-				foreach ( $emails as $email ) {
-					$out->addHTML( '<tr>' );
-					$out->addHTML( '<td>' . $email->email_timestamp . '</td>' );
-					$out->addHTML( '<td>' . $email->email_from . '</td>' );
-					$out->addHTML(
-						'<td>' .
-						Html::element(
-							'a',
-							[
-								'href' => SpecialPage::getTitleFor( 'Inbox', $email->email_id )->getLinkURL(),
-								'target' => '_blank',
-							],
-							$email->email_subject
-						) .
-						'</td>'
-					);
-					$out->addHTML( '</tr>' );
-				}
-				$out->addHTML( Html::closeElement( 'table' ) );
-			}
+			$this->showAllEmails( $this->getUser()->getEmail() );
 		}
 
+	}
+
+	private function showEmail( $emailAddress, $emailId ) {
+		$out = $this->getOutput();
+		$email = Email::get( $emailAddress, $emailId );
+		if ( $email ) {
+			$out->setArticleBodyOnly( true );
+			$out->addHTML( $email->email_subject );
+			$out->addHTML( '<hr />' );
+			$headers = array_change_key_case( FormatJson::decode( $email->email_headers, true ) );
+			if ( strpos( $headers[ 'content-type' ], 'multipart' ) !== false ) {
+				preg_match( '/boundary=\"(.*?)\"/', $headers[ 'content-type' ], $m );
+				$boundary = $m[1];
+				$parts = explode( '--' . $boundary, $email->email_body );
+				$this->showEmailcontent(  $parts[1], true );
+				$out->addHTML( '<hr />' );
+				$this->showEmailcontent( $parts[2] );
+			} elseif ( strpos( $headers[ 'content-type' ], 'text/plain' ) >= 0 ) {
+				$this->showEmailcontent( $email->email_body, true );
+			} else {
+				$this->showEmailcontent( $email->email_body );
+			}
+
+			Email::markRead( $emailId );
+		} else {
+			parent::execute( $emailId );
+			$out->addHTML( 'email not found' );
+		}
+	}
+
+	private function showEmailcontent( $content, $plainText = false ) {
+		$this->getOutput()->addHTML( Html::rawElement(
+			$plainText ? 'pre' : 'div',
+			[],
+			quoted_printable_decode( $content )
+		) );
+	}
+
+	private function showAllEmails( $emailAddress ) {
+		parent::execute( null );
+		$emails = Email::getAll( $emailAddress );
+		if ( $emails ) {
+			$this->getOutput()->addHTML( Html::rawElement(
+				'table',
+				null,
+				implode( '', array_map( function ( $email ) {
+					return Html::rawElement(
+						'tr',
+						[ 'class' => !$email->email_read ? 'email-unread' : '' ],
+						Html::element(
+							'td',
+							null,
+							$email->email_timestamp
+						) .
+						Html::element(
+							'td',
+							null,
+							$email->email_from
+						) .
+						Html::rawElement(
+							'td',
+							null,
+							Html::element(
+								'a',
+								[ 'href' => SpecialPage::getTitleFor( 'Inbox', $email->email_id )->getLinkURL() ],
+								$email->email_subject
+							)
+						)
+					);
+				}, iterator_to_array( $emails, false ) )
+			) ) );
+		}
 	}
 
 }
