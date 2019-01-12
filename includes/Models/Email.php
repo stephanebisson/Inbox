@@ -75,6 +75,11 @@ class Email {
 	}
 
 	public static function markRead( $id ) {
-
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_MASTER );
+		$dbw->update(
+			'inbox_email',
+			[ 'email_read' => 1 ],
+			[ 'email_id' => $id ]
+		);
 	}
 }
