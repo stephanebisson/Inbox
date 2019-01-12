@@ -28,6 +28,21 @@
 		"AlternateUserMailer": "Inbox\\Hooks::onAlternateUserMailer",
 		"PersonalUrls": "Inbox\\Hooks::onPersonalUrls"
 	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "modules",
+		"remoteExtPath": "Inbox/modules"
+	},
+	"ResourceModules": {
+		"inbox.style": {
+			"styles": [
+				"inbox.less"
+			],
+			"targets": [
+				"desktop",
+				"mobile"
+			]
+		}
+	},
 	"config": {
 		"InboxEnabled": {
 			"description": "Global ON/OFF switch for the Inbox features.",

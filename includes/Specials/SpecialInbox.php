@@ -19,8 +19,6 @@ class SpecialInbox extends SpecialPage {
 	 */
 	public function execute( $par ) {
 		$this->requireLogin();
-		$out = $this->getOutput();
-
 		if ( is_numeric( $par ) ) {
 			$this->showEmail( $this->getUser()->getEmail(), $par );
 		} else {
@@ -69,31 +67,32 @@ class SpecialInbox extends SpecialPage {
 		parent::execute( null );
 		$emails = Email::getAll( $emailAddress );
 		if ( $emails ) {
+			$this->getOutput()->addModuleStyles( 'inbox.style' );
 			$this->getOutput()->addHTML( Html::rawElement(
-				'table',
-				null,
+				'div',
+				[ 'class' => 'email-all' ],
 				implode( '', array_map( function ( $email ) {
 					return Html::rawElement(
-						'tr',
-						[ 'class' => !$email->email_read ? 'email-unread' : '' ],
+						'div',
+						[ 'class' => [ !$email->email_read ? 'email-unread' : '', 'email-one' ] ],
 						Html::element(
-							'td',
-							null,
-							$email->email_timestamp
-						) .
-						Html::element(
-							'td',
-							null,
+							'span',
+							[ 'class' => 'email-from' ],
 							$email->email_from
 						) .
 						Html::rawElement(
-							'td',
-							null,
+							'span',
+							[ 'class' => 'email-subject' ],
 							Html::element(
 								'a',
 								[ 'href' => SpecialPage::getTitleFor( 'Inbox', $email->email_id )->getLinkURL() ],
 								$email->email_subject
 							)
+						) .
+						Html::element(
+							'span',
+							[ 'class' => 'email-timestamp' ],
+							$this->getLanguage()->userTimeAndDate( $email->email_timestamp, $this->getUser() )
 						)
 					);
 				}, iterator_to_array( $emails, false ) )
