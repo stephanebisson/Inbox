@@ -72,7 +72,9 @@ class Email {
 		return $dbr->select(
 			'inbox_email',
 			[ 'email_id', 'email_from', 'email_subject', 'email_timestamp', 'email_read' ],
-			[ 'email_to' => $emailAddress ]
+			[ 'email_to' => $emailAddress ],
+			__METHOD__,
+			[ 'ORDER BY' => [ 'email_timestamp DESC' ] ]
 		);
 	}
 
