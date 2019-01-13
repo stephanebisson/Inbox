@@ -26,7 +26,8 @@
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "Inbox\\Hooks::onLoadExtensionSchemaUpdates",
 		"AlternateUserMailer": "Inbox\\Hooks::onAlternateUserMailer",
-		"PersonalUrls": "Inbox\\Hooks::onPersonalUrls"
+		"PersonalUrls": "Inbox\\Hooks::onPersonalUrls",
+		"OutputPageCheckLastModified": "Inbox\\Hooks::onOutputPageCheckLastModified"
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "modules",

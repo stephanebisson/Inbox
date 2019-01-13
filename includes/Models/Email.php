@@ -22,6 +22,17 @@ class Email {
 		$this->timestamp = $timestamp ?: wfTimestampNow();
 	}
 
+	public static function getNewestEmailTimestamp( $emailAddress ) {
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		return $dbr->selectField(
+			'inbox_email',
+			'email_timestamp',
+			[ 'email_to' => $emailAddress ],
+			__METHOD__,
+			[ 'ORDER BY' => [ 'email_timestamp DESC' ], 'limit' => 1 ]
+		);
+	}
+
 	public function save() {
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_MASTER );
 		$dbw->insert(

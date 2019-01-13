@@ -4,6 +4,7 @@ namespace Inbox;
 
 use DatabaseUpdater;
 use Inbox\Models\Email;
+use OutputPage;
 use SkinTemplate;
 use SpecialPage;
 use Title;
@@ -50,4 +51,15 @@ class Hooks {
 
 		$personal_urls = wfArrayInsertAfter( $personal_urls, [ 'inbox' => $inboxLink ], 'userpage' );
 	}
+
+	public static function onOutputPageCheckLastModified( array &$modifiedTimes, OutputPage $out ) {
+		$user = $out->getUser();
+		if ( $user->isLoggedIn() ) {
+			$newestEmailTimestamp = Email::getNewestEmailTimestamp( $user->getEmail() );
+			if ( $newestEmailTimestamp ) {
+				$modifiedTimes[ 'inbox-newest-email' ] = $newestEmailTimestamp;
+			}
+		}
+	}
+
 }
