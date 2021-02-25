@@ -69,19 +69,20 @@ class SpecialInbox extends SpecialPage {
 		if ( $emails ) {
 			$this->getOutput()->addModuleStyles( 'inbox.style' );
 			$this->getOutput()->addHTML( Html::rawElement(
-				'div',
-				[ 'class' => 'email-all' ],
+				'table',
+				[ 'class' => 'email-all mw-datatable' ],
+				'<tr><th>From</th><th>Subject</th><th>Time</th></tr>' .
 				implode( '', array_map( function ( $email ) {
 					return Html::rawElement(
-						'div',
+						'tr',
 						[ 'class' => [ !$email->email_read ? 'email-unread' : '', 'email-one' ] ],
 						Html::element(
-							'span',
+							'td',
 							[ 'class' => 'email-from' ],
 							$email->email_from
 						) .
 						Html::rawElement(
-							'span',
+							'td',
 							[ 'class' => 'email-subject' ],
 							Html::element(
 								'a',
@@ -90,7 +91,7 @@ class SpecialInbox extends SpecialPage {
 							)
 						) .
 						Html::element(
-							'span',
+							'td',
 							[ 'class' => 'email-timestamp' ],
 							$this->getLanguage()->userTimeAndDate( $email->email_timestamp, $this->getUser() )
 						)

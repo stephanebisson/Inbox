@@ -1,24 +1,14 @@
 @import 'mediawiki.ui/variables';
 
 .email-all {
-	display: table;
 	width: 100%;
 
 	.email-one {
-		display: table-row;
-		&:hover {
-			background-color: @colorGray12;
+		.email-subject {
+			width: 50%;
 		}
 
-		span {
-			display: table-cell;
-
-			&.email-subject {
-				width: 50%;
-			}
-		}
-
-		&.email-unread span {
+		&.email-unread {
 			font-weight: bold;
 		}
 	}
