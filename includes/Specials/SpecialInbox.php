@@ -5,7 +5,6 @@ namespace Inbox\Specials;
 use FormatJson;
 use Html;
 use Inbox\Models\Email;
-use Sanitizer;
 use SpecialPage;
 
 class SpecialInbox extends SpecialPage {
@@ -24,14 +23,18 @@ class SpecialInbox extends SpecialPage {
 		} else {
 			$this->showAllEmails( $this->getUser()->getEmail() );
 		}
-
 	}
 
+	/**
+	 * @param string $emailAddress
+	 * @param string $emailId
+	 */
 	private function showEmail( $emailAddress, $emailId ) {
 		$out = $this->getOutput();
 		$email = Email::get( $emailAddress, $emailId );
 		if ( $email ) {
 			$out->setArticleBodyOnly( true );
+			// @phan-suppress-next-line SecurityCheck-XSS
 			$out->addHTML( $email->email_subject );
 			$out->addHTML( '<hr />' );
 			$headers = array_change_key_case( FormatJson::decode( $email->email_headers, true ) );
@@ -39,7 +42,7 @@ class SpecialInbox extends SpecialPage {
 				preg_match( '/boundary=\"(.*?)\"/', $headers[ 'content-type' ], $m );
 				$boundary = $m[1];
 				$parts = explode( '--' . $boundary, $email->email_body );
-				$this->showEmailcontent(  $parts[1], true );
+				$this->showEmailcontent( $parts[1], true );
 				$out->addHTML( '<hr />' );
 				$this->showEmailcontent( $parts[2] );
 			} elseif ( strpos( $headers[ 'content-type' ], 'text/plain' ) >= 0 ) {
@@ -55,6 +58,10 @@ class SpecialInbox extends SpecialPage {
 		}
 	}
 
+	/**
+	 * @param string $content
+	 * @param bool $plainText
+	 */
 	private function showEmailcontent( $content, $plainText = false ) {
 		$this->getOutput()->addHTML( Html::rawElement(
 			$plainText ? 'pre' : 'div',
@@ -63,11 +70,15 @@ class SpecialInbox extends SpecialPage {
 		) );
 	}
 
+	/**
+	 * @param string $emailAddress
+	 */
 	private function showAllEmails( $emailAddress ) {
 		parent::execute( null );
 		$emails = Email::getAll( $emailAddress );
 		if ( $emails ) {
 			$this->getOutput()->addModuleStyles( 'inbox.style' );
+			// @phan-suppress-next-line SecurityCheck-XSS
 			$this->getOutput()->addHTML( Html::rawElement(
 				'table',
 				[ 'class' => 'email-all mw-datatable' ],

@@ -3,16 +3,34 @@
 namespace Inbox\Models;
 
 use FormatJson;
+use MailAddress;
 use MediaWiki\MediaWikiServices;
+use stdClass;
+use Wikimedia\Rdbms\ResultWrapper;
 
 class Email {
 
+	/** @var array */
 	private $headers;
+	/** @var string */
+	private $to;
+	/** @var string */
 	private $from;
+	/** @var string */
 	private $subject;
+	/** @var string */
 	private $body;
+	/** @var string */
 	private $timestamp;
 
+	/**
+	 * @param array $headers Associative array of headers for the email
+	 * @param MailAddress|array $to To address
+	 * @param MailAddress $from From address
+	 * @param string $subject Subject of the email
+	 * @param string $body Body of the message
+	 * @param string|null $timestamp
+	 */
 	public function __construct( $headers, $to, $from, $subject, $body, $timestamp = null ) {
 		$this->headers = $headers;
 		$this->to = $to[ 0 ]->address;
@@ -22,6 +40,10 @@ class Email {
 		$this->timestamp = $timestamp ?: wfTimestampNow();
 	}
 
+	/**
+	 * @param string $emailAddress
+	 * @return string
+	 */
 	public static function getNewestEmailTimestamp( $emailAddress ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		return $dbr->selectField(
@@ -33,6 +55,9 @@ class Email {
 		);
 	}
 
+	/**
+	 * Save email to DB
+	 */
 	public function save() {
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_MASTER );
 		$dbw->insert(
@@ -67,6 +92,10 @@ class Email {
 		);
 	}
 
+	/**
+	 * @param string $emailAddress
+	 * @return ResultWrapper
+	 */
 	public static function getAll( $emailAddress ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		return $dbr->select(
@@ -78,6 +107,11 @@ class Email {
 		);
 	}
 
+	/**
+	 * @param string $emailAddress
+	 * @param string $id
+	 * @return stdClass
+	 */
 	public static function get( $emailAddress, $id ) {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		return $dbr->selectRow(
@@ -87,6 +121,9 @@ class Email {
 		);
 	}
 
+	/**
+	 * @param string $id
+	 */
 	public static function markRead( $id ) {
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_MASTER );
 		$dbw->update(
