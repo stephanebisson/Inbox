@@ -69,7 +69,7 @@ class Hooks {
 	 */
 	public static function onOutputPageCheckLastModified( array &$modifiedTimes, OutputPage $out ) {
 		$user = $out->getUser();
-		if ( $user->isLoggedIn() ) {
+		if ( $user->isRegistered() ) {
 			$newestEmailTimestamp = Email::getNewestEmailTimestamp( $user->getEmail() );
 			if ( $newestEmailTimestamp ) {
 				$modifiedTimes[ 'inbox-newest-email' ] = $newestEmailTimestamp;
